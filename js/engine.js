@@ -9,36 +9,24 @@
  * drawn but that is not the case. What's really happening is the entire "scene"
  * is being drawn over and over, presenting the illusion of animation.
  *
- * This engine makes the canvas' context (ctx) object globally available to make
+ * This engine makes the canvas' context (ctx) object globally available to make 
  * writing app.js a little simpler to work with.
  */
 
 var Engine = (function(global) {
     /* Predefine the variables we'll be using within this scope,
      * create the canvas element, grab the 2D context for that canvas
-     * set the canvas element's height/width and add it to the DOM.
+     * set the canvas elements height/width and add it to the DOM.
      */
     var doc = global.document,
         win = global.window,
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
-        lastTime,
-        id;
-
-    const model = document.querySelector('.modal-bg');
-    const replay = document.querySelector('.modal-button');
-
-    replay.addEventListener('click', function() {
-        model.classList.toggle('hide');
-        player.reset();
-        player.victory = false;
-        win.requestAnimationFrame(main);
-    });
+        lastTime;
 
     canvas.width = 505;
     canvas.height = 606;
     doc.body.appendChild(canvas);
-
 
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
@@ -62,16 +50,12 @@ var Engine = (function(global) {
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
          */
-
         lastTime = now;
 
-        if (player.victory === true) {
-            win.cancelAnimationFrame(id);
-            model.classList.toggle('hide');
-        }
-        else {
-            id = win.requestAnimationFrame(main);
-        }
+        /* Use the browser's requestAnimationFrame function to call this
+         * function again as soon as the browser is able to draw another frame.
+         */
+        win.requestAnimationFrame(main);
     }
 
     /* This function does some initial setup that should only occur once,
@@ -133,9 +117,9 @@ var Engine = (function(global) {
             numRows = 6,
             numCols = 5,
             row, col;
-
+        
         // Before drawing, clear existing canvas
-        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.clearRect(0,0,canvas.width,canvas.height)
 
         /* Loop through the number of rows and columns we've defined above
          * and, using the rowImages array, draw the correct image for that

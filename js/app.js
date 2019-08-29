@@ -1,146 +1,142 @@
+let gameScore = 0,
+	lives = 4,
+	livesLeft = document.querySelector('.lives > span'),
+	score = document.querySelector('.score > span');
+
 // Enemies our player must avoid
-var Enemy = function (x, y, speed) {
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
-    this.x = x;
-    this.y = y + 55;
-    this.speed = speed;
-    this.step = 101;
-    this.boundary = this.step * 5;
-    this.resetPos = -this.step;
+class Enemy {
+	constructor(x, y, movement) {
+		// Variables applied to each of our instances go here,
+		// we've provided one for you to get started
+		this.x = x;
+		this.y = y;
+		this.movement = movement;
+		// The image/sprite for our enemies, this uses
+		// a helper we've provided to easily load images
+		this.sprite = 'images/enemy-bug.png';
+	}
 
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
-    this.sprite = 'images/enemy-bug.png';
-};
+	// Update the enemy's position, required method for game
+	// Parameter: dt, a time delta between ticks
+	update(dt) {
+		// You should multiply any movement by the dt parameter
+		// which will ensure the game runs at the same speed for
+		// all computers.
+		this.x += this.movement * dt;
+		livesLeft.innerText = lives;
 
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
-Enemy.prototype.update = function (dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers. ========Delete
+		// Restarts enemy movement from the left when Player reaches the water
+		if (this.x > 505) {
+			this.x = -150;
+			//Controls the enemy movement speed
+			//New Feature (levels): *400-600 easy *700+ for hard
+			this.movement = 150 + Math.floor(Math.random() * 800);
 
-    //if enemy is not passed boundary
-    if (this.x < this.boundary) {
-        // move forward
-        // Increment x by peed * dt
-        this.x += this.speed * dt;
-    } else {
-        // Reset pos to start
-        this.x = this.resetPos;
-    }
+		}
 
-};
-
-// Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function () {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
-
+		// Checks collisons and restarts player at the bottom
+		if (player.x < this.x + 60 &&
+			player.x + 37 > this.x &&
+			player.y < this.y + 25 &&
+			30 + player.y > this.y) {
+			player.x = 200;
+			player.y = 400;
+			lives--;
+			livesLeft.innerText = lives;
+			if (lives === 0) {
+				//Will replace with modal
+				confirm(`Game Over! Do you want to play again?`);
+				lives = 4;
+				gameScore = 0;
+				livesLeft.innerText = lives;
+				score.innerText = '';
+			}
+		}
+	};
+	// Draw the enemy on the screen, required method for game
+	render() {
+		ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+	}
+}
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
-
-// heroClass
-class Hero {
-
-    //==> constructor
-    constructor() {
-        //properties => add X coord, Y coord, sprite image
-        this.sprite = 'images/char-boy.png';
-        this.step = 101;
-        this.jump = 83;
-        this.startX = this.step * 2;
-        this.startY = (this.jump * 4) + 55;
-        this.x = this.startX;
-        this.y = this.startY;
-        this.victory = false;
-    }
-
-    //==> Methods
-
-    //Update position
-    update() {
-        //Check collision here
-        for (let enemy of allEnemies) {
-            // Did player x and y collide with enemy?
-            if (this.y === enemy.y && (enemy.x + enemy.step / 2 > this.x && enemy.x < this.x + this.step / 2)) {
-                this.reset();
-            }
-        }
-
-        //==> Check win here?
-        //==> Did player x and y reach final tile?
-        if (this.y === 55) {
-            this.victory = true;
-        }
-    }
-
-    //Rander => Draw player spirte on current x and y coord position
-    render() {
-        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-    }
-
-    /**
-     * Update her's a and y proberty according to input
-     *
-     * @param {srtring} input - Direction to travel
-     */
-
-    //Handle keyboard input => Update player's x and y property aording to input
-    handleInput(input) {
-        switch (input) {
-            case 'left':
-                if (this.x > 0) {
-                    this.x -= this.step;
-                }
-                break;
-            case 'up':
-                if (this.y > this.jump) {
-                    this.y -= this.jump;
-                }
-                break;
-            case 'right':
-                if (this.x < this.step * 4) {
-                    this.x += this.step;
-                }
-                break;
-            case 'down':
-                if (this.y < this.jump * 4) {
-                    this.y += this.jump;
-                }
-                break;
-        }
-    }
-
-    //Reset Hero
-    reset() {
-        // Set x nd y to starting x and y
-        this.y = this.startY;
-        this.x = this.startX;
-    }
+class Player {
+	constructor(x, y, movement) {
+		this.x = x;
+		this.y = y;
+		this.movement = movement;
+		this.sprite = 'images/char-boy.png';
+	}
+	update() {
+		// Stops Player from moving off the left/right side of canvas
+		if (this.y > 380) {
+			this.y = 380;
+		}
+		if (this.x > 400) {
+			this.x = 400;
+		}
+		if (this.x < 0) {
+			this.x = 0;
+		}
+		// Once player reaches the water, 100 points will be added to their game score
+		if (this.y < 0) {
+			this.x = 200;
+			this.y = 380;
+			gameScore++;
+			score.innerText = gameScore * 100;
+			if (gameScore === 10 && lives > 0) {
+				confirm('You won the game!');
+				lives = 4;
+				gameScore = 0;
+				livesLeft.innerText = lives;
+				score.innerText = '';
+			}
+		}
+	}
+	render() {
+		ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+	}
+	// Moves Player with keyboard arrow keys
+	handleInput(arrowKeyPressed) {
+		switch (arrowKeyPressed) {
+			case 'left':
+				this.x -= this.movement + 50;
+				break;
+			case 'up':
+				this.y -= this.movement + 30;
+				break;
+			case 'right':
+				this.x += this.movement + 50;
+				break;
+			case 'down':
+				this.y += this.movement + 30;
+				break;
+		}
+	}
 }
-
 // Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
-const player = new Hero();
-const bug1 = new Enemy(-101, 0, 200);
-const bug2 = new Enemy(-101, 83, 300);
-const bug3 = new Enemy((-101 * 2.5), 83, 300);
-const allEnemies = [];
-allEnemies.push(bug1, bug2, bug3);
+let allEnemies = [];
+// Canvas position of created enemies and player x, y, movement
+let enemyPosition = [50, 135, 220];
+let player = new Player(200, 400, 50);
+
+//Creates array of enemy objects
+enemyPosition.forEach((enemyPositionCoordinate) => {
+	let enemy = new Enemy(0, enemyPositionCoordinate, 100 + Math.floor(Math.random() * 500));
+	allEnemies.push(enemy);
+	// console.log(allEnemies);
+});
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
 document.addEventListener('keyup', function (e) {
-    var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
-    };
+	var allowedKeys = {
+		37: 'left',
+		38: 'up',
+		39: 'right',
+		40: 'down'
+	};
 
-    player.handleInput(allowedKeys[e.keyCode]);
+	player.handleInput(allowedKeys[e.keyCode]);
 });
